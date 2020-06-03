@@ -21,11 +21,13 @@ class UserAdsView(MethodView):
     def get(self, user_id):
         con = db.connection
         service = AdsService(con)
+        # Получаем все объявления конкретного пользователя
         ads = service.get_ads(user_id)
         return jsonify(ads)
 
 
     def post(self, user_id):
+        # Если пользователь не авторизован или id в сессии не равно user_id -> 403
         session_id = session.get('user_id')
         if session_id is None or session_id != user_id:
             return '', 403
@@ -33,6 +35,7 @@ class UserAdsView(MethodView):
         con = db.connection
         service = AdsService(con)
         try:
+            # Публикуем объявление авторизованного пользователя
             ads = service.post_ads(session_id)
         except AdForbiddenError:
             return '', 403

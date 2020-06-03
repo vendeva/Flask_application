@@ -17,9 +17,11 @@ def login():
     email = request_json.get('email')
     password = request_json.get('password')
 
+    # Проверка заполнены ли переданные поля, иначе -> 400
     if not email or not password:
         return '', 400
 
+    # Проверка авторизации
     con = db.connection
     cur = con.execute(
         'SELECT id, password '
@@ -30,11 +32,12 @@ def login():
     user = cur.fetchone()
 
     if user is None:
-        return '', 403
+        return '', 401
 
     if not check_password_hash(user['password'], password):
-        return '', 403
+        return '', 401
 
+    # Авторизуем пользователя
     session['user_id'] = user['id']
 
     return '', 200

@@ -13,6 +13,7 @@ bp = Blueprint('cities', __name__)
 
 class CitiesView(MethodView):
     def get(self):
+        # Получаем список городов
         con = db.connection
         cur = con.execute(
             'SELECT * '
@@ -25,12 +26,13 @@ class CitiesView(MethodView):
 
 
     def post(self):
+        # Проверка заполнены ли поле, иначе -> 400
         request_json = request.json
         city = request_json.get("name")
         if not city:
             return '', 400
 
-
+        # Получение города по значению name
         con = db.connection
         cur = con.execute(
             'SELECT * '
@@ -39,7 +41,7 @@ class CitiesView(MethodView):
             (city,),
         )
         result_city = cur.fetchone()
-
+        #Если города нет то записываем новый
         if result_city is None:
             try:
                 cur = con.execute(

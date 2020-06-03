@@ -14,10 +14,12 @@ bp = Blueprint('colors', __name__)
 
 class ColorsView(MethodView):
     def get(self):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
 
+        # Если авторизованный пользователь не является продавцом -> 403
         con = db.connection
         cur = con.execute(
             'SELECT seller.id '
@@ -29,6 +31,7 @@ class ColorsView(MethodView):
         if seller is None:
             return '', 403
 
+        # Получение списка цветов
         con = db.connection
         cur = con.execute(
             'SELECT * '
@@ -39,10 +42,12 @@ class ColorsView(MethodView):
         return jsonify(colors)
 
     def post(self):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
 
+        # Если авторизованный пользователь не является продавцом -> 403
         con = db.connection
         cur = con.execute(
             'SELECT seller.id '
@@ -54,6 +59,7 @@ class ColorsView(MethodView):
         if seller is None:
             return '', 403
 
+        # Проверка заполнены ли переданные поля, иначе -> 400
         request_json = request.json
         for value in request_json.values():
             if not value:
@@ -61,7 +67,7 @@ class ColorsView(MethodView):
 
         color = request_json.get("name")
 
-
+        # Проверка наличия цвета в таблице цветов
         cur = con.execute(
             'SELECT * '
             'FROM  color '
@@ -70,6 +76,7 @@ class ColorsView(MethodView):
         )
         result_color = cur.fetchone()
 
+        # Если цвета нет, запись в таблицу color
         if result_color is None:
             try:
                 cur = con.execute(

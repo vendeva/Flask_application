@@ -23,10 +23,12 @@ def allowed_file(filename):
 
 class ImagesView(MethodView):
     def post(self):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
 
+        # Если авторизованный пользователь не является продавцом -> 403
         con = db.connection
         cur = con.execute(
             'SELECT seller.id '
@@ -38,7 +40,7 @@ class ImagesView(MethodView):
         if seller is None:
             return '', 403
 
-
+        # Загрузка файла в папку images
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)

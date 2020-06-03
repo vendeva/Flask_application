@@ -20,6 +20,7 @@ bp = Blueprint('users', __name__)
 
 class UsersView(MethodView):
     def post(self):
+        # Если пользователь авторизован -> 403
         session_id = session.get('user_id')
         if session_id:
             return '', 403
@@ -27,17 +28,19 @@ class UsersView(MethodView):
         con = db.connection
         service = UserService(con)
         try:
-            ads = service.post_user()
+            # Регистрация пользователя
+            user = service.post_user()
         except UserBadRequestError:
             return '', 400
         except UserIntegrityError:
             return '', 409
         else:
-            return jsonify(ads), 201
+            return jsonify(user), 201
 
 
 class UserView(MethodView):
     def get(self, user_id):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
@@ -45,14 +48,16 @@ class UserView(MethodView):
         con = db.connection
         service = UserService(con)
         try:
-            ads = service.get_user(user_id)
+            # Получение данных пользователя
+            user = service.get_user(user_id)
         except UserDoesNotExistError:
             return '', 404
         else:
-            return jsonify(ads)
+            return jsonify(user)
 
 
     def patch(self, user_id):
+        # Если пользователь не авторизован или id в сессии не равно user_id -> 403
         session_id = session.get('user_id')
         if session_id is None or session_id != user_id:
             return '', 403
@@ -60,7 +65,8 @@ class UserView(MethodView):
         con = db.connection
         service = UserService(con)
         try:
-            ads = service.patch_user(user_id)
+            # Редактирование данных пользователя
+            user = service.patch_user(user_id)
         except UserDoesNotExistError:
             return '', 404
         except UserBadRequestError:
@@ -68,7 +74,7 @@ class UserView(MethodView):
         except UserIntegrityError:
             return '', 409
         else:
-            return jsonify(ads)
+            return jsonify(user)
 
 
 

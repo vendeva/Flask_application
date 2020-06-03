@@ -100,7 +100,7 @@ class AdsService:
         if seller is None:
             raise AdForbiddenError
 
-        # Проверка заполнены ли необходимые поля (рекурсивно), иначе -> 400
+        # Проверка заполнены ли переданые поля (рекурсивно), иначе -> 400
         request_json = request.json
         if self.is_empty_field(request_json):
             raise AdBadRequestError
@@ -219,13 +219,13 @@ class AdsService:
                    if key in "title"}
 
         try:
-            # Запись в таблицу car, если переданы параметры
+            # Обновление таблицы car, если переданы параметры
             car_params = ','.join(f'{key} = ?' for key in car_dict.keys())
             if car_params:
                 car_query = f'UPDATE car SET {car_params} WHERE id = ?'
                 self.connection.execute(car_query, (*car_dict.values(), car_id))
 
-            # Запись в таблицу ad, если переданы параметры
+            # Обновление таблицы ad, если переданы параметры
             ad_params = ','.join(f'{key} = ?' for key in ad_dict.keys())
             if ad_params:
                 ad_query = f'UPDATE ad SET {ad_params} WHERE id = ?'
@@ -333,7 +333,7 @@ class AdsService:
 
 
     def is_seller(self, ad_id, session_id):
-        # Проверка является ли пользователь продавцом
+        # Ищем обьявление
         cur = self.connection.execute(
             'SELECT seller.account_id, ad.car_id '
             'FROM ad '
@@ -353,7 +353,7 @@ class AdsService:
 
 
     def is_empty_field(self, request):
-        # Проверка полей на пустоту
+        # Проверка полей на пустоту для каждого поля из списка
         for key, value in request.items():
             if not value and "num_owners" not in key:
                 return True

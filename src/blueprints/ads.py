@@ -22,11 +22,13 @@ class AdsView(MethodView):
     def get(self):
         con = db.connection
         service = AdsService(con)
+        # Получаем все объявления
         ads = service.get_ads()
         return jsonify(ads)
 
 
     def post(self):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
@@ -34,6 +36,7 @@ class AdsView(MethodView):
         con = db.connection
         service = AdsService(con)
         try:
+            # Публикуем объявление авторизованного пользователя
             ads = service.post_ads(session_id)
         except AdForbiddenError:
             return '', 403
@@ -50,6 +53,7 @@ class AdView(MethodView):
         con = db.connection
         service = AdsService(con)
         try:
+            # Получаем объявление по его id
             ads = service.get_ad(ad_id)
         except AdDoesNotExistError:
             return '', 404
@@ -57,6 +61,7 @@ class AdView(MethodView):
 
 
     def patch(self, ad_id):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
@@ -64,7 +69,9 @@ class AdView(MethodView):
         con = db.connection
         service = AdsService(con)
         try:
+            # Ищем объявление по id, является ли пользователь продавцом
             car_id = service.is_seller(ad_id, session_id)
+            # Редактируем объявление
             ads = service.patch_ad(ad_id, car_id)
         except AdDoesNotExistError:
             return '', 404
@@ -79,6 +86,7 @@ class AdView(MethodView):
 
 
     def delete(self, ad_id):
+        # Если пользователь не авторизован -> 403
         session_id = session.get('user_id')
         if session_id is None:
             return '', 403
@@ -86,7 +94,9 @@ class AdView(MethodView):
         con = db.connection
         service = AdsService(con)
         try:
+            # Ищем объявление по id, является ли пользователь продавцом
             car_id = service.is_seller(ad_id, session_id)
+            # Удаление объявления, машины, связей по цветам, изображениям и тегам
             service.delete_ad(ad_id, car_id)
         except AdDoesNotExistError:
             return '', 404
